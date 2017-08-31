@@ -56,18 +56,10 @@ Bi = (fft2(im).*conj(fft2(im)));
 % random warp original image to create training set
 N = 127;
 for i = 1:N
-    [img, grd] = rand_warp(im, g);
-    train_set(:,:,i) = img;
-    targets(:,:,i) = grd;
-end
-
-for i = 1:N
-    gi = targets(:,:,i);
-    fi = train_set(:,:,i);
+    [fi, gi] = rand_warp(im, g);
     Ai = Ai + (fft2(gi).*conj(fft2(fi)));
     Bi = Bi + (fft2(fi).*conj(fft2(fi)));
-end;
-
+end
 % h = h/N;
 % h = double2uint8(h);
 % figure; imshow(h);
