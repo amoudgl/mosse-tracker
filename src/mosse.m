@@ -38,61 +38,57 @@ rect = getrect;
 center = [rect(2)+rect(4)/2 rect(1)+rect(3)/2];
 
 % plot gaussian
-sigma = 500;
+sigma = 100;
 gsize = size(im);
 [R,C] = ndgrid(1:gsize(1), 1:gsize(2));
 g = gaussC(R,C, sigma, center);
 g = double2uint8(g);
-% imshow(g);
-% H = ((fft2(g).*conj(fft2(im)))./(fft2(im).*conj(fft2(im))));
-% h = double2uint8(ifft2(H));
-% h = double(h);
-% imshow(h);
-% verify to get ground truth image from the obtained filter
-% imshow(multspec(h, im)) 
 
-Ai = (fft2(g).*conj(fft2(im)));
-Bi = (fft2(im).*conj(fft2(im)));
 % random warp original image to create training set
+img = imcrop(im, rect);
+g = imcrop(g, rect);
+height = size(g,1);
+width = size(g,2);
+Ai = (fft2(g).*conj(fft2(img)));
+Bi = (fft2(img).*conj(fft2(img)));
 N = 127;
 for i = 1:N
-    [fi, gi] = rand_warp(im, g);
+    [fi, gi] = rand_warp(img, g);
     Ai = Ai + (fft2(gi).*conj(fft2(fi)));
     Bi = Bi + (fft2(fi).*conj(fft2(fi)));
 end
-% h = h/N;
-% h = double2uint8(h);
-% figure; imshow(h);
-% verify to get ground truth image from the obtained filter
-% figure;
-% fig = imshow(im);
-% set(fig, 'AlphaData', multspec(h, im));
 
 % Online training regimen
 eta = 0.125;
-test_images = img_files(1:100,:);
 figure;
-for i = 1:size(test_images, 1)
-    fi = imread(test_images(i,:));
+for i = 1:size(img_files, 1)
+    img = imread(img_files(i,:));
     if (i == 1)
         Ai = eta.*Ai;
         Bi = eta.*Bi;
     else
-%         gi = multspec(hi, fi);
+        Hi = Ai./Bi;
+        hi = double2uint8(ifft2(Hi));
+        fi = imcrop(img, rect); 
+        fi = imresize(fi, [height width]);
+        gi = multspec(hi, fi);
+        maxval = max(gi(:));
+        [P, Q] = find(gi == maxval);
+        dx = mean(P)-height/2;
+        dy = mean(Q)-width/2;
+        rect = [rect(1)+dy rect(2)+dx width height];
+        fi = imcrop(img, rect); 
+        fi = imresize(fi, [height width]);
         Ai = eta.*(fft2(g).*conj(fft2(fi))) + (1-eta).*Ai;
         Bi = eta.*(fft2(fi).*conj(fft2(fi))) + (1-eta).*Bi;
     end
     
-    % track object
-    Hi = Ai./Bi;
-    hi = double2uint8(ifft2(Hi));
-    gi = multspec(hi, fi);
-%     imshow(gi);
-    I = imlincomb(1, fi, 1, gi, 'uint8');
+    % visualization
     text_str = ['Frame: ' num2str(i)];
     box_color = 'green';
     position=[1 2];
-    result = insertText(I,position,text_str,'FontSize',30,'BoxColor',...
+    result = insertText(img, position,text_str,'FontSize',30,'BoxColor',...
                      box_color,'BoxOpacity',0.4,'TextColor','white');
+    result = insertShape(result, 'Rectangle', rect, 'LineWidth', 5);
     imshow(result);
 end
