@@ -38,7 +38,7 @@ rect = getrect;
 center = [rect(2)+rect(4)/2 rect(1)+rect(3)/2];
 
 % plot gaussian
-sigma = 1000;
+sigma = 500;
 gsize = size(im);
 [R,C] = ndgrid(1:gsize(1), 1:gsize(2));
 g = gaussC(R,C, sigma, center);
@@ -51,21 +51,22 @@ g = double2uint8(g);
 % verify to get ground truth image from the obtained filter
 % imshow(multspec(h, im)) 
 
+Ai = (fft2(g).*conj(fft2(im)));
+Bi = (fft2(im).*conj(fft2(im)));
 % random warp original image to create training set
-% N = 127;
-% for i = 1:N
-%     [img, grd] = rand_warp(im, g);
-%     train_set(:,:,i) = img;
-%     targets(:,:,i) = grd;
-% end
-% 
-% for i = 1:N
-%     gi = targets(:,:,i);
-%     fi = train_set(:,:,i);
-%     Hi = ((fft2(gi).*conj(fft2(fi)))./(fft2(fi).*conj(fft2(fi))));
-%     hi = double2uint8(ifft2(Hi));
-%     h = h + double(hi);
-% end;
+N = 127;
+for i = 1:N
+    [img, grd] = rand_warp(im, g);
+    train_set(:,:,i) = img;
+    targets(:,:,i) = grd;
+end
+
+for i = 1:N
+    gi = targets(:,:,i);
+    fi = train_set(:,:,i);
+    Ai = Ai + (fft2(gi).*conj(fft2(fi)));
+    Bi = Bi + (fft2(fi).*conj(fft2(fi)));
+end;
 
 % h = h/N;
 % h = double2uint8(h);
@@ -78,8 +79,6 @@ g = double2uint8(g);
 % Online training regimen
 eta = 0.125;
 test_images = img_files(1:100,:);
-Ai = (fft2(g).*conj(fft2(im)));
-Bi = (fft2(im).*conj(fft2(im)));
 figure;
 for i = 1:size(test_images, 1)
     fi = imread(test_images(i,:));
@@ -87,21 +86,21 @@ for i = 1:size(test_images, 1)
         Ai = eta.*Ai;
         Bi = eta.*Bi;
     else
-        Ai_1 = Ai;
-        Bi_1 = Bi;
-        Ai = eta.*(fft2(g).*conj(fft2(fi))) + (1-eta).*Ai_1;
-        Bi = eta.*(fft2(fi).*conj(fft2(fi))) + (1-eta).*Bi_1;
+%         gi = multspec(hi, fi);
+        Ai = eta.*(fft2(g).*conj(fft2(fi))) + (1-eta).*Ai;
+        Bi = eta.*(fft2(fi).*conj(fft2(fi))) + (1-eta).*Bi;
     end
     
     % track object
     Hi = Ai./Bi;
     hi = double2uint8(ifft2(Hi));
     gi = multspec(hi, fi);
+%     imshow(gi);
     I = imlincomb(1, fi, 1, gi, 'uint8');
     text_str = ['Frame: ' num2str(i)];
     box_color = 'green';
     position=[1 2];
-    RGB = insertText(I,position,text_str,'FontSize',30,'BoxColor',...
+    result = insertText(I,position,text_str,'FontSize',30,'BoxColor',...
                      box_color,'BoxOpacity',0.4,'TextColor','white');
-    imshow(RGB);
+    imshow(result);
 end
