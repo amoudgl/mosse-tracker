@@ -1,4 +1,3 @@
-clc; close all; clear;
 % get images from source directory
 src = '/Neutron7/abhinav.moudgil/tracking-dataset/Dos_resized_43/';
 img_path = [src '/img/'];
