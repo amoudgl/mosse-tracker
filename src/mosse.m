@@ -1,40 +1,20 @@
-% get images from source directory
-% src = '/Neutron7/abhinav.moudgil/mdnet/dataset/mydata/Dos';
-% img_path = [src '/img/'];
-% D = dir([img_path, '*.png']);
-% seq_len = length(D(not([D.isdir])));
-% if exist([img_path num2str(1, '%05i.png')], 'file'),
-%     img_files = num2str((1:seq_len)', [img_path '%05i.png']);
-% else
-%     error('No image files found in the directory.');
-% end
-
 clc; close all; clear;
-
-img_path = '../data/';
-D = dir([img_path, '*.jpg']);
+% get images from source directory
+src = '/Neutron7/abhinav.moudgil/tracking-dataset/Dos_resized_43/';
+img_path = [src '/img/'];
+D = dir([img_path, '*.png']);
 seq_len = length(D(not([D.isdir])));
-if exist([img_path num2str(1, '%05i.jpg')], 'file'),
-    img_files = num2str((1:seq_len)', [img_path '%05i.jpg']);
+if exist([img_path num2str(1, '%05i.png')], 'file'),
+    img_files = num2str((1:seq_len)', [img_path '%05i.png']);
 else
     error('No image files found in the directory.');
 end
-
-% save gray images to local directory
-% img_files = img_files(43:end, :);
-sz = size(img_files);
-seq_len = sz(1,1);
-% mkdir data; 
-% for i = 1 : seq_len
-%     im = imread(img_files(i,:));
-%     im = rgb2gray(im);
-%     imwrite(im, ['data/' num2str(i, '%05i.jpg')], 'jpeg');
-% end
 
 % select target from first frame
 im = imread(img_files(1,:));
 imshow(im);
 rect = getrect;
+close all;
 center = [rect(2)+rect(4)/2 rect(1)+rect(3)/2];
 
 % plot gaussian
@@ -44,8 +24,9 @@ gsize = size(im);
 g = gaussC(R,C, sigma, center);
 g = double2uint8(g);
 
-% random warp original image to create training set
-img = imcrop(im, rect);
+% randomly warp original image to create training set
+img = rgb2gray(im);
+img = imcrop(img, rect);
 g = imcrop(g, rect);
 height = size(g,1);
 width = size(g,2);
@@ -58,11 +39,13 @@ for i = 1:N
     Bi = Bi + (fft2(fi).*conj(fft2(fi)));
 end
 
-% Online training regimen
+% MOSSE online training regimen
 eta = 0.125;
-figure;
+mkdir results;
+fig = figure('Name', 'MOSSE');
 for i = 1:size(img_files, 1)
-    img = imread(img_files(i,:));
+    im = imread(img_files(i,:));
+    img = rgb2gray(im);
     if (i == 1)
         Ai = eta.*Ai;
         Bi = eta.*Bi;
@@ -86,9 +69,10 @@ for i = 1:size(img_files, 1)
     % visualization
     text_str = ['Frame: ' num2str(i)];
     box_color = 'green';
-    position=[1 2];
-    result = insertText(img, position,text_str,'FontSize',30,'BoxColor',...
+    position=[1 1];
+    result = insertText(im, position,text_str,'FontSize',15,'BoxColor',...
                      box_color,'BoxOpacity',0.4,'TextColor','white');
-    result = insertShape(result, 'Rectangle', rect, 'LineWidth', 5);
+    result = insertShape(result, 'Rectangle', rect, 'LineWidth', 3);
     imshow(result);
+    imwrite(result, ['results/' num2str(i, '%05i.png')]);
 end
