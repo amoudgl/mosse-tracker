@@ -1,10 +1,10 @@
 % get images from source directory
-src = '/Neutron7/abhinav.moudgil/tracking-dataset/Dos_resized_43/';
+src = '../data/Surfer';
 img_path = [src '/img/'];
-D = dir([img_path, '*.png']);
+D = dir([img_path, '*.jpg']);
 seq_len = length(D(not([D.isdir])));
-if exist([img_path num2str(1, '%05i.png')], 'file'),
-    img_files = num2str((1:seq_len)', [img_path '%05i.png']);
+if exist([img_path num2str(1, '%04i.jpg')], 'file'),
+    img_files = num2str((1:seq_len)', [img_path '%04i.jpg']);
 else
     error('No image files found in the directory.');
 end
@@ -24,7 +24,9 @@ g = gaussC(R,C, sigma, center);
 g = double2uint8(g);
 
 % randomly warp original image to create training set
-img = rgb2gray(im);
+if (size(im,3) == 3) 
+    img = rgb2gray(im); 
+end
 img = imcrop(img, rect);
 g = imcrop(g, rect);
 height = size(g,1);
@@ -40,11 +42,12 @@ end
 
 % MOSSE online training regimen
 eta = 0.125;
-mkdir results;
 fig = figure('Name', 'MOSSE');
 for i = 1:size(img_files, 1)
     im = imread(img_files(i,:));
-    img = rgb2gray(im);
+    if (size(im,3) == 3) 
+        img = rgb2gray(im); 
+    end
     if (i == 1)
         Ai = eta.*Ai;
         Bi = eta.*Bi;
@@ -73,5 +76,4 @@ for i = 1:size(img_files, 1)
                      box_color,'BoxOpacity',0.4,'TextColor','white');
     result = insertShape(result, 'Rectangle', rect, 'LineWidth', 3);
     imshow(result);
-    imwrite(result, ['results/' num2str(i, '%05i.png')]);
 end
