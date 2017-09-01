@@ -11,9 +11,9 @@ end
 
 % select target from first frame
 im = imread(img_files(1,:));
-imshow(im);
+f = figure('Name', 'Select object to track'); imshow(im);
 rect = getrect;
-close all;
+close(f); clear f;
 center = [rect(2)+rect(4)/2 rect(1)+rect(3)/2];
 
 % plot gaussian
