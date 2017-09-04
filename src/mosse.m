@@ -21,7 +21,7 @@ sigma = 100;
 gsize = size(im);
 [R,C] = ndgrid(1:gsize(1), 1:gsize(2));
 g = gaussC(R,C, sigma, center);
-g = double2uint8(g);
+g = mat2gray(g);
 
 % randomly warp original image to create training set
 if (size(im,3) == 3) 
@@ -36,7 +36,7 @@ Ai = (G.*conj(fft2(img)));
 Bi = (fft2(img).*conj(fft2(img)));
 N = 127;
 for i = 1:N
-    fi = rand_warp(img);
+    fi = preprocess(rand_warp(img));
     Ai = Ai + (G.*conj(fft2(fi)));
     Bi = Bi + (fft2(fi).*conj(fft2(fi)));
 end
@@ -45,26 +45,27 @@ end
 eta = 0.125;
 fig = figure('Name', 'MOSSE');
 for i = 1:size(img_files, 1)
-    im = imread(img_files(i,:));
-    if (size(im,3) == 3) 
-        img = rgb2gray(im); 
+    img = imread(img_files(i,:));
+    im = img;
+    if (size(img,3) == 3)
+        img = rgb2gray(img);
     end
     if (i == 1)
         Ai = eta.*Ai;
         Bi = eta.*Bi;
     else
         Hi = Ai./Bi;
-        hi = double2uint8(ifft2(Hi));
         fi = imcrop(img, rect); 
-        fi = imresize(fi, [height width]);
-        gi = multspec(hi, fi);
+        fi = preprocess(imresize(fi, [height width]));
+        gi = uint8(255*mat2gray(ifft2(Hi.*fft2(fi))));
         maxval = max(gi(:));
         [P, Q] = find(gi == maxval);
         dx = mean(P)-height/2;
         dy = mean(Q)-width/2;
+        
         rect = [rect(1)+dy rect(2)+dx width height];
         fi = imcrop(img, rect); 
-        fi = imresize(fi, [height width]);
+        fi = preprocess(imresize(fi, [height width]));
         Ai = eta.*(G.*conj(fft2(fi))) + (1-eta).*Ai;
         Bi = eta.*(fft2(fi).*conj(fft2(fi))) + (1-eta).*Bi;
     end
