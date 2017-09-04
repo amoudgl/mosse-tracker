@@ -29,14 +29,15 @@ if (size(im,3) == 3)
 end
 img = imcrop(img, rect);
 g = imcrop(g, rect);
+G = fft2(g);
 height = size(g,1);
 width = size(g,2);
-Ai = (fft2(g).*conj(fft2(img)));
+Ai = (G.*conj(fft2(img)));
 Bi = (fft2(img).*conj(fft2(img)));
 N = 127;
 for i = 1:N
-    [fi, gi] = rand_warp(img, g);
-    Ai = Ai + (fft2(gi).*conj(fft2(fi)));
+    fi = rand_warp(img);
+    Ai = Ai + (G.*conj(fft2(fi)));
     Bi = Bi + (fft2(fi).*conj(fft2(fi)));
 end
 
@@ -64,7 +65,7 @@ for i = 1:size(img_files, 1)
         rect = [rect(1)+dy rect(2)+dx width height];
         fi = imcrop(img, rect); 
         fi = imresize(fi, [height width]);
-        Ai = eta.*(fft2(g).*conj(fft2(fi))) + (1-eta).*Ai;
+        Ai = eta.*(G.*conj(fft2(fi))) + (1-eta).*Ai;
         Bi = eta.*(fft2(fi).*conj(fft2(fi))) + (1-eta).*Bi;
     end
     
