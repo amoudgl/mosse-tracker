@@ -25,7 +25,7 @@ Computer Vision and Pattern Recognition (CVPR), 2010 IEEE Conference on. IEEE, 2
 * Run the `mosse` MATLAB script.   
    `>> mosse`
 * First frame of the video will popup; select the object to track.
-* The tracker script will show subsequent frames with appropriate bounding box.
+* The tracker script will show subsequent frames with appropriate bounding boxes.
 
 To run on your dataset, simply change the path in `src/mosse.m` script.   
 
