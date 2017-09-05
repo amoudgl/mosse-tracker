@@ -1,6 +1,8 @@
 % get images from source directory
-src = '../data/Surfer';
-img_path = [src '/img/'];
+datadir = '../data/';
+dataset = 'Surfer';
+path = [datadir dataset];
+img_path = [path '/img/'];
 D = dir([img_path, '*.jpg']);
 seq_len = length(D(not([D.isdir])));
 if exist([img_path num2str(1, '%04i.jpg')], 'file'),
@@ -32,9 +34,10 @@ g = imcrop(g, rect);
 G = fft2(g);
 height = size(g,1);
 width = size(g,2);
-Ai = (G.*conj(fft2(img)));
-Bi = (fft2(img).*conj(fft2(img)));
-N = 127;
+fi = preprocess(imresize(img, [height width]));
+Ai = (G.*conj(fft2(fi)));
+Bi = (fft2(fi).*conj(fft2(fi)));
+N = 128;
 for i = 1:N
     fi = preprocess(rand_warp(img));
     Ai = Ai + (G.*conj(fft2(fi)));
@@ -44,6 +47,7 @@ end
 % MOSSE online training regimen
 eta = 0.125;
 fig = figure('Name', 'MOSSE');
+mkdir(['results_' dataset]);
 for i = 1:size(img_files, 1)
     img = imread(img_files(i,:));
     im = img;
@@ -77,5 +81,6 @@ for i = 1:size(img_files, 1)
     result = insertText(im, position,text_str,'FontSize',15,'BoxColor',...
                      box_color,'BoxOpacity',0.4,'TextColor','white');
     result = insertShape(result, 'Rectangle', rect, 'LineWidth', 3);
+    imwrite(result, ['results_' dataset num2str(i, '/%04i.jpg')]);
     imshow(result);
 end
