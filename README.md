@@ -19,3 +19,25 @@ Computer Vision and Pattern Recognition (CVPR), 2010 IEEE Conference on. IEEE, 2
 
 ### How to run
 
+* Start MATLAB and navigate to project directory.
+* Navigate to `src/` directory.   
+   `>> cd src`
+* Run the `mosse` MATLAB script.   
+   `>> mosse`
+* First frame of the video will popup; select the object to track.
+* The tracker script will show subsequent frames with appropriate bounding box.
+
+To run on your dataset, simply change the path in `src/mosse.m` script.   
+
+### License
+
+MIT
+
+
+
+
+
+
+
+
+
