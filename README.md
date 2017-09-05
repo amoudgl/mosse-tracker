@@ -8,9 +8,9 @@ David S. Bolme, J. Ross Beveridge, Bruce A. Draper, Yui Man Lui.
 Computer Vision and Pattern Recognition (CVPR), 2010 IEEE Conference on. IEEE, 2010.
 
 
-### Outputs
+### Output
 
-
+![Surfer result gif](results/surfer_mosse.gif)
 
 ### Dependencies
 
