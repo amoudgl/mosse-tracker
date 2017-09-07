@@ -8,16 +8,16 @@ David S. Bolme, J. Ross Beveridge, Bruce A. Draper, Yui Man Lui.
 Computer Vision and Pattern Recognition (CVPR), 2010 IEEE Conference on. IEEE, 2010.
 
 
-### Output
+## Output
 
 ![Surfer result gif](results/surfer_mosse.gif)
 
-### Dependencies
+## Dependencies
 
 * MATLAB
 * MATLAB Vision Toolbox
 
-### How to run
+## How to run
 
 * Start MATLAB and navigate to project directory.
 * Navigate to `src/` directory.   
@@ -29,7 +29,7 @@ Computer Vision and Pattern Recognition (CVPR), 2010 IEEE Conference on. IEEE, 2
 
 To run on your dataset, simply change the path in `src/mosse.m` script.   
 
-### License
+## License
 
 MIT
 
