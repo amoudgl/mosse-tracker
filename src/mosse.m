@@ -1,4 +1,5 @@
 % get images from source directory
+close all; clc; clear;
 datadir = '../data/';
 dataset = 'Surfer';
 path = [datadir dataset];
@@ -37,13 +38,13 @@ width = size(g,2);
 fi = preprocess(imresize(img, [height width]));
 Ai = (G.*conj(fft2(fi)));
 Bi = (fft2(fi).*conj(fft2(fi)));
-N = 128;
+N = 16;
 for i = 1:N
-    fi = preprocess(rand_warp(img));
+    img_warp = rand_warp(img);
+    fi = preprocess(img_warp);
     Ai = Ai + (G.*conj(fft2(fi)));
     Bi = Bi + (fft2(fi).*conj(fft2(fi)));
 end
-
 % MOSSE online training regimen
 eta = 0.125;
 fig = figure('Name', 'MOSSE');
@@ -68,10 +69,19 @@ for i = 1:size(img_files, 1)
         dy = mean(Q)-width/2;
         
         rect = [rect(1)+dy rect(2)+dx width height];
-        fi = imcrop(img, rect); 
-        fi = preprocess(imresize(fi, [height width]));
-        Ai = eta.*(G.*conj(fft2(fi))) + (1-eta).*Ai;
-        Bi = eta.*(fft2(fi).*conj(fft2(fi))) + (1-eta).*Bi;
+        img = imcrop(img, rect); 
+        img = imresize(img, [height width]);
+        fi = preprocess(img);
+        Aij = G.*conj(fft2(fi));
+        Bij = fft2(fi).*conj(fft2(fi));
+        for j = 1:N
+            img_warp = rand_warp(img);
+            fi = preprocess(img_warp);
+            Aij = Aij + (G.*conj(fft2(fi)));
+            Bij = Bij + (fft2(fi).*conj(fft2(fi)));
+        end
+        Ai = eta.*Aij + (1-eta).*Ai;
+        Bi = eta.*Bij + (1-eta).*Bi;
     end
     
     % visualization
@@ -81,6 +91,6 @@ for i = 1:size(img_files, 1)
     result = insertText(im, position,text_str,'FontSize',15,'BoxColor',...
                      box_color,'BoxOpacity',0.4,'TextColor','white');
     result = insertShape(result, 'Rectangle', rect, 'LineWidth', 3);
-    imwrite(result, ['results_' dataset num2str(i, '/%04i.jpg')]);
-    imshow(result);
+%     imwrite(result, ['results_' dataset num2str(i, '/%04i.jpg')]);
+    imshow(result); 
 end
